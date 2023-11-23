@@ -1,35 +1,19 @@
-const {
-  bigint_to_Uint8Array,
-  bigint_to_array,
-  Uint8Array_to_bigint,
-} = require("./bnManipulations");
-
-const {
-  validateKeyPair,
-  validatePrivKey,
-  validatePubKey,
-  pubKeyToAddressString,
-} = require("./account");
-
-const {
-  validateMsgHash,
-  createRandomAccount,
-  prepareToSerialization,
-  bigintArrayToStringArray,
-} = require("./utils");
+const { bigintToUint8Array, bigintToArray, Uint8ArrayToBigint } = require("./bnManipulations");
+const { validateKeyPair, validatePrivKey, validatePubKey, pubKeyToAddressString } = require("./account");
+const { validateMsgHash, createRandomAccount, prepareToSerialization, bigintArrayToStringArray } = require("./utils");
 
 module.exports = {
-  validateKeyPair,
-  validatePrivKey,
-  validatePubKey,
-  pubKeyToAddressString,
+    validateKeyPair,
+    validatePrivKey,
+    validatePubKey,
+    pubKeyToAddressString,
 
-  bigint_to_Uint8Array,
-  bigint_to_array,
-  Uint8Array_to_bigint,
+    bigintToUint8Array,
+    bigintToArray,
+    Uint8ArrayToBigint,
 
-  validateMsgHash,
-  createRandomAccount,
-  prepareToSerialization,
-  bigintArrayToStringArray,
+    validateMsgHash,
+    createRandomAccount,
+    prepareToSerialization,
+    bigintArrayToStringArray,
 };

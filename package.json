@@ -1,9 +1,11 @@
 {
-  "name": "safe-grant",
+  "name": "safe-anonymization-module",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint . --ext js --max-warnings 0",
+    "lint:fix": "eslint ./scripts --ext .js --fix",
     "test_circuit": "sh shellScripts/run.sh -i input -c",
     "test_no_pots": "sh shellScripts/run.sh -i input -r 1 -p false -c",
     "solidityVerifier": "sh shellScripts/createVerifier.sh",
@@ -18,5 +20,13 @@
     "circomlibjs": "^0.1.7",
     "ethereumjs-util": "^7.1.5",
     "fixed-merkle-tree": "^0.7.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.54.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-n": "^16.3.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "prettier": "3.1.0"
   }
 }
