@@ -38,8 +38,6 @@ template SAM(levels, n, k) {
     component getAddressFromPubKey = PubkeyToAddress();
     getAddressFromPubKey.pubkeyBits <== flattenPubKey.pubkeyBits;
 
-    log("address: ", getAddressFromPubKey.address);
-
     // Hash address to get the leaf
     component addressHasher = MiMCSponge(1, 220, 1);
     addressHasher.ins[0] <== getAddressFromPubKey.address;
