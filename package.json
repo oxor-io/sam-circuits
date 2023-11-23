@@ -1,0 +1,22 @@
+{
+  "name": "safe-grant",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test_circuit": "sh shellScripts/run.sh -i input -c",
+    "test_no_pots": "sh shellScripts/run.sh -i input -r 1 -p false -c",
+    "solidityVerifier": "sh shellScripts/createVerifier.sh",
+    "getCalldata": "snarkjs zkey export soliditycalldata ./build/public.json build/proof.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@noble/secp256k1": "^2.0.0",
+    "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7",
+    "ethereumjs-util": "^7.1.5",
+    "fixed-merkle-tree": "^0.7.3"
+  }
+}
