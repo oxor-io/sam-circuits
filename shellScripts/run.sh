@@ -1,29 +1,60 @@
 #!/bin/bash
 
+# Error codes:
+# 1 - invalid option is provided on the command line.
+# 2 - input file with provided name does not exist
+# 3 - using the compile option via c witness the file was not provided.
+
+# 100 - invalid option is provided on the command line to compilation script
+# 101 - circuit with provided name does not exist
+# 102 - circuit compilation failed
+
 # Stop execution if any step returns non-zero (non success) status
 set -e
 
+
+# Errors
+ERROR_INVALID_OPTION=1
+ERROR_INPUT_FILE_NOT_EXIST=2
+ERROR_FILE_NOT_PROVIDED=3
+
+
 CIRCUIT_NAME=
 INPUT_NAME=
-CEREMONY=
-NEED_POTS=
+TARGET_EXECUTION_METHOD=
+WITNESS_GENERATION=false
+COMPILATION_REQUIRED=false
+SETUP_REQUIRED=false
+PROVE_REQUIRED=false
+VERIFY_REQUIRED=false
 
-while getopts "c:i:r:p:" opt; do
+
+while getopts "n:c:i:wspv" opt; do
   case $opt in
-    c)
+    n)
       CIRCUIT_NAME=$(basename "$OPTARG" .circom)
       ;;
     i)
       INPUT_NAME=$(basename "$OPTARG" .json)
       ;;
-    r)
-      CEREMONY=$OPTARG
+    c)
+      COMPILATION_REQUIRED=true
+      TARGET_EXECUTION_METHOD=$OPTARG
+      ;;
+    w)
+      WITNESS_GENERATION=true
+      ;;
+    s)
+      SETUP_REQUIRED=true
       ;;
     p)
-      NEED_POTS=$OPTARG
+      PROVE_REQUIRED=true
+      ;;
+    v)
+      VERIFY_REQUIRED=true
       ;;
     \?)
-      exit 1
+      exit $ERROR_INVALID_OPTION
       ;;
   esac
 done
@@ -33,7 +64,7 @@ JS_FOLDER=${BUILD_DIR}/${CIRCUIT_NAME}_js
 WITNESS=witness.wtns
 
 POTS_DIR=pots # directory to keep PowersOfTau
-POWERTAU=21 # power value for "powersOfTau"
+POWERTAU=10 # power value for "powersOfTau"
 
 PTAU_FILE=pot${POWERTAU}_0000.ptau
 PTAU_PATH=${POTS_DIR}/${PTAU_FILE}
@@ -44,47 +75,74 @@ PUBLIC=${BUILD_DIR}/public.json
 CONTRIBUTED_PTAU_FILE=contributed_${PTAU_FILE}
 FINAL_PTAU=pot${POWERTAU}_final.ptau
 
-# Is circuit exist?
-if [ ! -f circuits/${CIRCUIT_NAME}.circom ]; then
-  echo "circuits/${CIRCUIT_NAME}.circom doesn't exist, exit..."
-  exit 3
+# Compile if required
+if [ "$COMPILATION_REQUIRED" = true ]; then
+  echo "Compilation is required. Start..."
+
+  chmod +x ./shellScripts/compilation.sh
+  case "$TARGET_EXECUTION_METHOD" in
+    "wasm")
+      echo "Compiling to WASM"
+      ./shellScripts/compilation.sh -n "${CIRCUIT_NAME}"
+      ;;
+    "c")
+      echo "Compiling to C"
+      ./shellScripts/compilation.sh -c -n "${CIRCUIT_NAME}"
+      ;;
+    *)
+      echo "Unknown execution method. Only c or wasm supported!"
+      ;;
+  esac
 fi
 
-if [ ! -f ${INPUT_NAME}.json ]; then
-  echo "Input file: ${INPUT_NAME}.json is not exist"
-  exit 4
+if [ "${WITNESS_GENERATION}" == true ]; then
+  echo "Generate witness"
+  start=$(date +%s)
+
+  if [ ! -f "${INPUT_NAME}".json ]; then
+    echo "Input file: ${INPUT_NAME}.json does not exist"
+    exit $ERROR_INPUT_FILE_NOT_EXIST
+  fi
+
+  case "$TARGET_EXECUTION_METHOD" in
+    "wasm")
+      node "${JS_FOLDER}"/generate_witness.js "${JS_FOLDER}"/"${CIRCUIT_NAME}".wasm "${INPUT_NAME}".json ${WITNESS}
+      mv ${WITNESS} ${BUILD_DIR}
+      ;;
+    "c")
+      printf "\\nUsing {c} to generate witness on Apple Silicon chips is not supported. \\nTo fix this problem, use https://github.com/0xPolygonID/witnesscalc.\\n"
+      echo "Generate witness and put *.wtns to build folder"
+      read -p "Did you put the *.wtns file in the build folder? (Type Y, if yes): " -r answer
+
+      case "$answer" in
+        "Y")
+          echo "Ok, moving on..."
+          ;;
+        "y")
+          echo "Ok, moving on..."
+          ;;
+        "YES")
+          echo "Ok, moving on..."
+          ;;
+        "yes")
+          echo "Ok, moving on..."
+          ;;
+        *)
+          echo "You need to generate witness to move on!"
+          exit $ERROR_FILE_NOT_PROVIDED
+          ;;
+      esac
+      ;;
+    *)
+      echo "Unknown execution method. Only c or wasm supported!"
+      ;;
+  esac
+  end=$(date +%s)
+  echo "DONE ($((end-start))s)"
 fi
 
-if [ -d "$BUILD_DIR" ]; then
-  echo "$BUILD_DIR exists, deliting..."
-  rm -rf ./$BUILD_DIR
-fi
 
-echo "Creating new $BUILD_DIR dir"
-mkdir -p "$BUILD_DIR"
-
-start=`date +%s`
-echo "Building R1CS for circuit ${CIRCUIT_NAME}.circom"
-if ! circom circuits/${CIRCUIT_NAME}.circom --r1cs --wasm --sym -o $BUILD_DIR; then
-  echo "circuits/${CIRCUIT_NAME}.circom compilation to r1cs failed. Exiting..."
-  exit 5
-fi
-end=`date +%s`
-echo "DONE ($((end-start))s)"
-
-echo "Info about circuits/${CIRCUIT_NAME}.circom R1CS constraints system"
-snarkjs info -c ${BUILD_DIR}/${CIRCUIT_NAME}.r1cs
-
-echo "Generate witness"
-start=`date +%s`
-node ${JS_FOLDER}/generate_witness.js ${JS_FOLDER}/${CIRCUIT_NAME}.wasm ${INPUT_NAME}.json ${WITNESS}
-end=`date +%s`
-echo "DONE ($((end-start))s)"
-
-# Move witness to build
-mv ${WITNESS} ${BUILD_DIR}
-
-if [ "$NEED_POTS" == "false" ] || [ -d $POTS_DIR ] && [ -f $PTAU_PATH ]; then
+if [ -d $POTS_DIR ] && [ -f $PTAU_PATH ] || [ -f "${POTS_DIR}/pot${POWERTAU}_final.ptau" ]; then
   echo "No need to generate new POTS"
 else
   echo "Generate new PTAU"
@@ -92,30 +150,40 @@ else
   snarkjs powersoftau new bn128 ${POWERTAU} ${PTAU_PATH}
 fi
 
-if $NEED_POTS && [ -z $CEREMONY ]; then
+if [ ! -f "${POTS_DIR}/pot${POWERTAU}_final.ptau" ]; then
   echo "Ceremony required, start..."
-  start=`date +%s`
+
+  start=$(date +%s)
   snarkjs powersoftau contribute ${PTAU_PATH} ${POTS_DIR}/${CONTRIBUTED_PTAU_FILE} --name="First contribution"
+  end=$(date +%s)
+  echo "DONE ($((end-start))s)"
+
+  start=$(date +%s)
   snarkjs powersoftau prepare phase2 ${POTS_DIR}/${CONTRIBUTED_PTAU_FILE} ${POTS_DIR}/${FINAL_PTAU}
-  end=`date +%s`
+  end=$(date +%s)
   echo "DONE ($((end-start))s)"
 fi
 
-start=`date +%s`
-snarkjs groth16 setup ${BUILD_DIR}/${CIRCUIT_NAME}.r1cs ${POTS_DIR}/${FINAL_PTAU} ${BUILD_DIR}/${CIRCUIT_NAME}_init.zkey
-snarkjs zkey contribute ${BUILD_DIR}/${CIRCUIT_NAME}_init.zkey ${BUILD_DIR}/${CIRCUIT_NAME}.zkey --name="1st Contributor Name"
-snarkjs zkey export verificationkey ${BUILD_DIR}/${CIRCUIT_NAME}.zkey ${BUILD_DIR}/verification_key.json
-end=`date +%s`
-echo "DONE ($((end-start))s)"
+if [ "${SETUP_REQUIRED}" == true ]; then
+  start=$(date +%s)
+  echo "Setup..."
+  snarkjs groth16 setup ${BUILD_DIR}/"${CIRCUIT_NAME}".r1cs ${POTS_DIR}/${FINAL_PTAU} ${BUILD_DIR}/"${CIRCUIT_NAME}"_init.zkey
+  end=$(date +%s)
+  echo "DONE ($((end-start))s)"
 
-echo "Start proving"
-start=`date +%s`
-snarkjs groth16 prove ${BUILD_DIR}/${CIRCUIT_NAME}.zkey ${BUILD_DIR}/${WITNESS} ${PROOF} ${PUBLIC}
-end=`date +%s`
-echo "DONE ($((end-start))s)"
+  snarkjs zkey contribute ${BUILD_DIR}/"${CIRCUIT_NAME}"_init.zkey ${BUILD_DIR}/"${CIRCUIT_NAME}".zkey --name="1st Contributor Name"
+  snarkjs zkey export verificationkey ${BUILD_DIR}/"${CIRCUIT_NAME}".zkey ${BUILD_DIR}/verification_key.json
+fi
 
-echo "==============RESULT=============="
-start=`date +%s`
-snarkjs groth16 verify ${BUILD_DIR}/verification_key.json ${PUBLIC} ${PROOF}
-end=`date +%s`
-echo "DONE ($((end-start))s)"
+if [ "${PROVE_REQUIRED}" == true ]; then
+  echo "Start proving..."
+  start=$(date +%s)
+  snarkjs groth16 prove ${BUILD_DIR}/"${CIRCUIT_NAME}".zkey ${BUILD_DIR}/${WITNESS} ${PROOF} ${PUBLIC}
+  end=$(date +%s)
+  echo "DONE ($((end-start))s)"
+fi
+
+if [ "${VERIFY_REQUIRED}" == true ]; then
+  echo "==============RESULT=============="
+  snarkjs groth16 verify ${BUILD_DIR}/verification_key.json ${PUBLIC} ${PROOF}
+fi
