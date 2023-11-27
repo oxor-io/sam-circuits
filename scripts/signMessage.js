@@ -1,5 +1,4 @@
 const { validatePrivKey, bigintToArray, validateMsgHash, Uint8ArrayToBigint } = require("./common/index.js");
-
 const { isHexString, stripHexPrefix } = require("ethereumjs-util");
 
 // k registers of n bits each

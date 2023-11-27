@@ -1,11 +1,12 @@
 const { privateToPublic } = require("ethereumjs-util");
-const { generateTree, signMessage } = require("./index.js");
+const { generateTree } = require("./merkleTree.js");
+const { signMessage } = require("./signMessage.js");
 const { pubKeyToAddressString, validatePrivKey, validatePubKey, prepareToSerialization } = require("./common/index.js");
 
 const fs = require("fs");
 const path = require("path");
 
-async function generateInput(privKey, participantAddresses, msgHash, treeHeight) {
+async function generateInputData(privKey, participantAddresses, msgHash, treeHeight) {
     validatePrivKey(privKey);
 
     const pubKey = privateToPublic(Buffer.from(privKey));
@@ -40,10 +41,18 @@ async function generateInput(privKey, participantAddresses, msgHash, treeHeight)
 
     prepareToSerialization(witness);
 
+    return witness;
+}
+
+async function generateInputFile(privKey, participantAddresses, msgHash, treeHeight) {
+    const witness = generateInputData(privKey, participantAddresses, msgHash, treeHeight);
     const outputPath = path.join(__dirname, "..", "input.json");
     fs.writeFileSync(outputPath, JSON.stringify(witness), "utf-8");
 }
 
 module.exports = {
-    generateInput,
+    generateInputData,
+    generateInputFile,
+    generateTree,
+    signMessage,
 };

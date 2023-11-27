@@ -33,11 +33,15 @@
     "fixed-merkle-tree": "^0.7.3"
   },
   "devDependencies": {
+    "chai": "^4.3.10",
+    "chai-as-promised": "^7.1.1",
+    "circom_tester": "^0.0.20",
     "eslint": "^8.54.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-n": "^16.3.1",
     "eslint-plugin-promise": "^6.1.1",
+    "mocha": "^10.2.0",
     "prettier": "3.1.0"
   }
 }

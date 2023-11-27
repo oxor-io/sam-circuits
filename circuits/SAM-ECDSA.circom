@@ -61,4 +61,4 @@ template SAM(levels, n, k) {
     commit <== commitHasher.outs[0];
 }
 
-component main{ public [root] } = SAM(1, 64, 4);
+component main{ public [root] } = SAM(5, 64, 4); // 5 => 32 users
