@@ -64,7 +64,7 @@ JS_FOLDER=${BUILD_DIR}/${CIRCUIT_NAME}_js
 WITNESS=witness.wtns
 
 POTS_DIR=pots # directory to keep PowersOfTau
-POWERTAU=10 # power value for "powersOfTau"
+POWERTAU=21 # power value for "powersOfTau"
 
 PTAU_FILE=pot${POWERTAU}_0000.ptau
 PTAU_PATH=${POTS_DIR}/${PTAU_FILE}
@@ -171,7 +171,12 @@ if [ "${SETUP_REQUIRED}" == true ]; then
   end=$(date +%s)
   echo "DONE ($((end-start))s)"
 
+  echo "Contribute to zkey..."
+  start=$(date +%s)
   snarkjs zkey contribute ${BUILD_DIR}/"${CIRCUIT_NAME}"_init.zkey ${BUILD_DIR}/"${CIRCUIT_NAME}".zkey --name="1st Contributor Name"
+  end=$(date +%s)
+  echo "DONE ($((end-start))s)"
+
   snarkjs zkey export verificationkey ${BUILD_DIR}/"${CIRCUIT_NAME}".zkey ${BUILD_DIR}/verification_key.json
 fi
 
