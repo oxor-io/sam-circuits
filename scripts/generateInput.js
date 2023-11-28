@@ -39,20 +39,20 @@ async function generateInputData(privKey, participantAddresses, msgHash, treeHei
         s: sAsChunks,
     };
 
-    prepareToSerialization(witness);
-
     return witness;
 }
 
-async function generateInputFile(privKey, participantAddresses, msgHash, treeHeight) {
+async function generateInputFileSerialized(privKey, participantAddresses, msgHash, treeHeight) {
     const witness = generateInputData(privKey, participantAddresses, msgHash, treeHeight);
+    prepareToSerialization(witness);
+
     const outputPath = path.join(__dirname, "..", "input.json");
     fs.writeFileSync(outputPath, JSON.stringify(witness), "utf-8");
 }
 
 module.exports = {
     generateInputData,
-    generateInputFile,
+    generateInputFileSerialized,
     generateTree,
     signMessage,
 };

@@ -1,8 +1,8 @@
-const { generateInputData, generateInputFile, signMessage, generateTree } = require("./generateInput.js");
+const { generateInputData, generateInputFileSerialized, signMessage, generateTree } = require("./generateInput.js");
 
 module.exports = {
     generateTree,
     signMessage,
     generateInputData,
-    generateInputFile,
+    generateInputFileSerialized,
 };
