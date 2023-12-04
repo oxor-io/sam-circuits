@@ -20,7 +20,8 @@
     "circom:verifier": "sh shellScripts/createVerifier.sh",
     "circom:calldata": "snarkjs zkey export soliditycalldata ./build/public.json build/proof.json",
     "lint": "eslint . --ext js --max-warnings 0",
-    "lint:fix": "eslint ./scripts --ext .js --fix"
+    "lint:fix": "eslint ./scripts --ext .js --fix",
+    "test": "npx mocha test"
   },
   "keywords": [],
   "author": "",
