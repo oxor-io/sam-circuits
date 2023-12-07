@@ -149,19 +149,17 @@ template ECDSAVerifyNoPubkeyCheck(n, k) {
         sinv_range_checks[idx] = Num2Bits(n);
         sinv_range_checks[idx].in <== sinv[idx];
     }
+    // s^-1 * s must be point at infinity
     component sinv_check = BigMultModP(n, k);
     for (var idx = 0; idx < k; idx++) {
         sinv_check.a[idx] <== sinv[idx];
         sinv_check.b[idx] <== s[idx];
         sinv_check.p[idx] <== order[idx];
     }
-    for (var idx = 0; idx < k; idx++) {
-        if (idx > 0) {
-            sinv_check.out[idx] === 0;
-        }
-        if (idx == 0) {
-            sinv_check.out[idx] === 1;
-        }
+
+    sinv_check.out[0] === 1;
+    for (var idx = 1; idx < k; idx++) {
+        sinv_check.out[idx] === 0;
     }
 
     // compute (h * sinv) mod n
@@ -187,7 +185,7 @@ template ECDSAVerifyNoPubkeyCheck(n, k) {
     }
 
     // compute (r * sinv) * pubkey
-    component pubkey_mult = Secp256k1ScalarMult(n, k);
+    component pubkey_mult = Secp256k1ScalarMultWindow(n, k, 4);
     for (var idx = 0; idx < k; idx++) {
         pubkey_mult.scalar[idx] <== pubkey_coeff.out[idx];
         pubkey_mult.point[0][idx] <== pubkey[0][idx];
