@@ -34,7 +34,6 @@ template SAM(levels, n, k) {
     component flattenPubKey = FlattenPubkey(n, k);
     flattenPubKey.chunkedPubkey <== pubKey;
 
-
     component getAddressFromPubKey = PubkeyToAddress();
     getAddressFromPubKey.pubkeyBits <== flattenPubKey.pubkeyBits;
 
@@ -61,4 +60,4 @@ template SAM(levels, n, k) {
     commit <== commitHasher.outs[0];
 }
 
-component main{ public [root] } = SAM(5, 64, 4); // 5 => 32 users
+component main{ public [root, msgHash] } = SAM(5, 64, 4); // 5 => 32 users
