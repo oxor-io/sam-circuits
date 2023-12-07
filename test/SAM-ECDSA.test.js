@@ -54,8 +54,19 @@ describe("SAM circuit", function () {
         );
     });
 
-    it("Circuit can be verified with valid witness", async function () {
+    it("Circuit can be verified with valid witness (full tree)", async function () {
         const witness = await circuit.calculateWitness(defaultWitnessData);
+        await circuit.checkConstraints(witness);
+    });
+
+    it("Circuit can be verified with valid witness (tree with empty leafs)", async function () {
+        const witnessData = await generateInputData(
+            mainAccount.privKey,
+            accountAddresses.slice(0, 18),
+            DEFAULT_MSG_HASH,
+            TREE_HIGHT,
+        );
+        const witness = await circuit.calculateWitness(witnessData);
         await circuit.checkConstraints(witness);
     });
 
