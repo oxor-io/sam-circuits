@@ -1,10 +1,15 @@
-const { validatePrivKey, bigintToArray, validateMsgHash, Uint8ArrayToBigint } = require("./common/index.js");
+const {
+    validatePrivKey,
+    validateMsgHash,
+    bigintToArrayBitwise,
+    Uint8ArrayToBigintBitwise,
+} = require("./common/index.js");
 const { isHexString, stripHexPrefix } = require("ethereumjs-util");
 
 // k registers of n bits each
-const N = 64;
-const K = 4;
-const ONE_WORD = 256;
+const N = 64n;
+const K = 4n;
+const ONE_WORD = 256n;
 
 /**
  * @param {String} msgHash - msg to be signed as hex
@@ -31,14 +36,14 @@ async function signMessage(msgHash, privKey, params = { N, K }) {
 
     const { r, s } = await secp.signAsync(msgHash, privKey);
 
-    const rAsChunks = bigintToArray(N, K, r);
-    const sAsChunks = bigintToArray(N, K, s);
+    const rAsChunks = bigintToArrayBitwise(N, K, r);
+    const sAsChunks = bigintToArrayBitwise(N, K, s);
 
-    const msgHashAsChunks = bigintToArray(N, K, Uint8ArrayToBigint(msgHash));
+    const msgHashAsChunks = bigintToArrayBitwise(N, K, Uint8ArrayToBigintBitwise(msgHash));
 
     const pubKey = secp.ProjectivePoint.fromPrivateKey(privKey);
-    const pubKeyXAsChunks = bigintToArray(N, K, pubKey.x);
-    const pubKeyYAsChunks = bigintToArray(N, K, pubKey.y);
+    const pubKeyXAsChunks = bigintToArrayBitwise(N, K, pubKey.x);
+    const pubKeyYAsChunks = bigintToArrayBitwise(N, K, pubKey.y);
 
     return {
         rAsChunks,

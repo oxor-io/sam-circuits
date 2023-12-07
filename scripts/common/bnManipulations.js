@@ -62,10 +62,20 @@ function Uint8ArrayToBigint(x) {
     return ret;
 }
 
+function Uint8ArrayToBigintBitwise(x) {
+    let ret = 0n;
+    for (let i = 0; i < x.length; i++) {
+        ret <<= 8n;
+        ret |= BigInt(x[i]);
+    }
+    return ret;
+}
+
 module.exports = {
     bigintToArray,
     bigintToUint8Array,
     Uint8ArrayToBigint,
     bigintToArrayBitwise,
     bigintToUint8ArrayBitwise,
+    Uint8ArrayToBigintBitwise,
 };

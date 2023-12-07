@@ -4,6 +4,7 @@ const {
     bigintToArrayBitwise,
     bigintToUint8ArrayBitwise,
     Uint8ArrayToBigint,
+    Uint8ArrayToBigintBitwise,
 } = require("./bnManipulations");
 const { validateKeyPair, validatePrivKey, validatePubKey, pubKeyToAddressString } = require("./account");
 const { validateMsgHash, createRandomAccount, prepareToSerialization, bigintArrayToStringArray } = require("./utils");
@@ -19,6 +20,7 @@ module.exports = {
     Uint8ArrayToBigint,
     bigintToArrayBitwise,
     bigintToUint8ArrayBitwise,
+    Uint8ArrayToBigintBitwise,
 
     validateMsgHash,
     createRandomAccount,
