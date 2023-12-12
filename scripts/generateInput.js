@@ -1,4 +1,4 @@
-const { privateToPublic } = require("ethereumjs-util");
+const { privateToPublic, toChecksumAddress } = require("ethereumjs-util");
 const { generateTree } = require("./merkleTree.js");
 const { signMessage } = require("./signMessage.js");
 const { pubKeyToAddressString, validatePrivKey, validatePubKey, prepareToSerialization } = require("./common/index.js");
@@ -12,7 +12,9 @@ async function generateInputData(privKey, participantAddresses, msgHash, treeHei
     const pubKey = privateToPublic(Buffer.from(privKey));
     validatePubKey(pubKey);
 
-    const currentAddress = pubKeyToAddressString(pubKey);
+    const currentAddress = toChecksumAddress(pubKeyToAddressString(pubKey));
+    participantAddresses = participantAddresses.map(toChecksumAddress);
+
     if (participantAddresses.indexOf(currentAddress) === -1) {
         throw new Error("Account with provided private key is not participant of Trie");
     }
