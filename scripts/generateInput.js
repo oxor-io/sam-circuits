@@ -1,4 +1,4 @@
-const { privateToPublic, toChecksumAddress } = require("ethereumjs-util");
+const { privateToPublic, toChecksumAddress, isValidChecksumAddress } = require("ethereumjs-util");
 const { generateTree } = require("./merkleTree.js");
 const { signMessage } = require("./signMessage.js");
 const { pubKeyToAddressString, validatePrivKey, validatePubKey, prepareToSerialization } = require("./common/index.js");
@@ -12,10 +12,12 @@ async function generateInputData(privKey, participantAddresses, msgHash, treeHei
     const pubKey = privateToPublic(Buffer.from(privKey));
     validatePubKey(pubKey);
 
-    const currentAddress = toChecksumAddress(pubKeyToAddressString(pubKey));
-    participantAddresses = participantAddresses.map(toChecksumAddress);
+    // We use the custom toChecksumAddressIfNot function because
+    // toChecksumAddress can produce an invalid checksum if an address with a correct checksum is passed.
+    const currentAddress = toChecksumAddressIfNot(pubKeyToAddressString(pubKey));
+    participantAddresses = participantAddresses.map(toChecksumAddressIfNot);
 
-    if (participantAddresses.indexOf(currentAddress) === -1) {
+    if (!participantAddresses.includes(currentAddress)) {
         throw new Error("Account with provided private key is not participant of Trie");
     }
     const { tree, treeHashFn } = await generateTree(treeHeight, participantAddresses);
@@ -48,6 +50,14 @@ async function generateInputFileSerialized(privKey, participantAddresses, msgHas
 
     const outputPath = path.join(__dirname, "..", "input.json");
     fs.writeFileSync(outputPath, JSON.stringify(witness), "utf-8");
+}
+
+function toChecksumAddressIfNot(address) {
+    if (!isValidChecksumAddress(address)) {
+        address = toChecksumAddress(address);
+    }
+
+    return address;
 }
 
 module.exports = {
