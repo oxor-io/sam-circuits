@@ -1,0 +1,5 @@
+[package]
+name = "SAM"
+type = "bin"
+authors = ["@KumaCrypto"]
+compiler_version = ">=0.22.0"
