@@ -1,33 +1,17 @@
-const { privateToPublic, toChecksumAddress, isValidChecksumAddress } = require("ethereumjs-util");
-const { generateTree } = require("./merkleTree.js");
-const { signMessage } = require("./signMessage.js");
-const { pubKeyToAddressString, validatePrivKey, validatePubKey, prepareToSerialization } = require("./common/index.js");
+const { getInclusionProof } = require("./merkleTree.js");
+const { signMessageChunks, signMessageU8 } = require("./signMessage.js");
+const { keccak256 } = require("@ethersproject/solidity");
+const { defaultAbiCoder } = require("@ethersproject/abi");
+const { prepareForSerialization, privKeyToStringAddress } = require("./common/index.js");
 
-const fs = require("fs");
-const path = require("path");
-
-async function generateInputData(privKey, participantAddresses, msgHash, treeHeight) {
-    validatePrivKey(privKey);
-
-    const pubKey = privateToPublic(Buffer.from(privKey));
-    validatePubKey(pubKey);
-
-    // We use the custom toChecksumAddressIfNot function because
-    // toChecksumAddress can produce an invalid checksum if an address with a correct checksum is passed.
-    const currentAddress = toChecksumAddressIfNot(pubKeyToAddressString(pubKey));
-    participantAddresses = participantAddresses.map(toChecksumAddressIfNot);
-
-    if (!participantAddresses.includes(currentAddress)) {
-        throw new Error("Account with provided private key is not participant of Trie");
-    }
-    const { tree, treeHashFn } = await generateTree(treeHeight, participantAddresses);
-    const currentElement = treeHashFn([currentAddress]);
-    const proof = tree.proof(currentElement);
-
-    const { rAsChunks, sAsChunks, msgHashAsChunks, pubKeyXAsChunks, pubKeyYAsChunks } = await signMessage(
+async function generateDataCircom(privKey, participantAddresses, msgHash, treeHeight) {
+    const { rAsChunks, sAsChunks, msgHashAsChunks, pubKeyXAsChunks, pubKeyYAsChunks } = await signMessageChunks(
         msgHash,
         privKey,
     );
+
+    const currentAddress = privKeyToStringAddress(privKey);
+    const { proof, tree } = await getInclusionProof(currentAddress, participantAddresses, treeHeight);
 
     const witness = {
         root: tree.root.toString(),
@@ -44,25 +28,75 @@ async function generateInputData(privKey, participantAddresses, msgHash, treeHei
     return witness;
 }
 
+async function generateDataNoir(privKey, participantAddresses, msgHash, treeHeight) {
+    const { msgHash: msgHashU8, sigBytes, pubKey } = await signMessageU8(msgHash, privKey);
+
+    const currentAddress = privKeyToStringAddress(privKey);
+    const { proof, tree } = await getInclusionProof(currentAddress, participantAddresses, treeHeight);
+
+    proof.pathIndices = compress_positions(proof.pathIndices);
+
+    const witness = {
+        root: tree.root.toString(),
+
+        pathElements: proof.pathElements,
+        pathIndices: proof.pathIndices,
+
+        msgHash: msgHashU8,
+        pubKey,
+        sig: sigBytes,
+    };
+
+    return witness;
+}
+
+// If options.order == false => reverse position array
+function compress_positions(positions_indexes, options = { order: true }) {
+    if (!options.order) {
+        positions_indexes = positions_indexes.reverse();
+    }
+
+    let result = 0;
+    for (let i = positions_indexes.length - 1; i >= 0; i--) {
+        if ((positions_indexes[i] & 1) != positions_indexes[i]) {
+            throw new Error("Not a bin index");
+        }
+
+        const inverseIndex = positions_indexes.length - 1 - i;
+        const num = positions_indexes[i] << inverseIndex;
+
+        result |= num;
+    }
+
+    return result;
+}
+
 async function generateInputFileSerialized(privKey, participantAddresses, msgHash, treeHeight) {
+    const fs = require("fs");
+    const path = require("path");
+
     const witness = generateInputData(privKey, participantAddresses, msgHash, treeHeight);
-    prepareToSerialization(witness);
+    prepareForSerialization(witness);
 
     const outputPath = path.join(__dirname, "..", "input.json");
     fs.writeFileSync(outputPath, JSON.stringify(witness), "utf-8");
 }
 
-function toChecksumAddressIfNot(address) {
-    if (!isValidChecksumAddress(address)) {
-        address = toChecksumAddress(address);
-    }
+function calculateMsgHash(to, value, data, operation, nonce, samAddress, chainId) {
+    const calldataHash = keccak256(["bytes"], [data]);
 
-    return address;
+    const encodedData = defaultAbiCoder.encode(
+        ["address", "uint256", "bytes32", "uint8", "uint256", "address", "uint256"],
+        [to, value, calldataHash, operation, nonce, samAddress, chainId],
+    );
+    const msgHash = keccak256(["bytes"], [encodedData]);
+
+    return msgHash;
 }
 
 module.exports = {
-    generateInputData,
+    generateDataCircom,
+    generateDataNoir,
     generateInputFileSerialized,
-    generateTree,
-    signMessage,
+    calculateMsgHash,
 };

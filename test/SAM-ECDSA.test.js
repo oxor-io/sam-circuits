@@ -1,5 +1,6 @@
-const { generateInputData } = require("../scripts/index");
-const { createRandomAccount, pubKeyToAddressString } = require("../scripts/common/index");
+const { generateDataCircom } = require("../scripts/index");
+const { bigintToUint8ArrayBitwise } = require("../scripts/common/index");
+const { ANVIL_ADDRESSES, ANVIL_PRIVATE_KEYS } = require("../scripts/common/anvil_accounts_data.json");
 
 const wasmTester = require("circom_tester/index").wasm;
 const path = require("path");
@@ -15,21 +16,23 @@ const CIRCUIT_FILE_PATH = path.join(__dirname, "../circuits", CIRCUIT_FILE_NAME)
 const OUTPUT = path.join(__dirname, "../build");
 
 const TREE_HIGHT = 5;
-const DEFAULT_MSG_HASH = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6";
-
-// Helper function
-async function createArrayOfAccounts(size) {
-    const arr = new Array(size).fill(undefined);
-    return Promise.all(arr.map(() => createRandomAccount()));
-}
+const DEFAULT_MSG_HASH = "0x104ffbad9450b48089e3d917b63fc13c88ddac7ed4a02bc03512d883f0666c8b";
 
 describe("SAM circuit", function () {
     this.timeout(1000000);
 
-    let accounts, mainAccount, accountAddresses;
     let circuit, defaultWitnessData;
+    let defaultUserPrivateKey;
 
     before(async () => {
+        defaultUserPrivateKey = bigintToUint8ArrayBitwise(BigInt(ANVIL_PRIVATE_KEYS[0]));
+        defaultWitnessData = await generateDataCircom(
+            defaultUserPrivateKey,
+            ANVIL_ADDRESSES,
+            DEFAULT_MSG_HASH,
+            TREE_HIGHT,
+        );
+
         try {
             circuit = await wasmTester(CIRCUIT_FILE_PATH, { output: OUTPUT, recompile: false });
             console.log("Compiled version detected...");
@@ -41,17 +44,6 @@ describe("SAM circuit", function () {
                 circuit = await wasmTester(CIRCUIT_FILE_PATH);
             }
         }
-
-        accounts = await createArrayOfAccounts(2 ** TREE_HIGHT);
-        [mainAccount] = accounts;
-
-        accountAddresses = accounts.map((acc) => pubKeyToAddressString(Buffer.from(acc.pubKey)));
-        defaultWitnessData = await generateInputData(
-            mainAccount.privKey,
-            accountAddresses,
-            DEFAULT_MSG_HASH,
-            TREE_HIGHT,
-        );
     });
 
     it("Circuit can be verified with valid witness (full tree)", async function () {
@@ -60,9 +52,9 @@ describe("SAM circuit", function () {
     });
 
     it("Circuit can be verified with valid witness (tree with empty leafs)", async function () {
-        const witnessData = await generateInputData(
-            mainAccount.privKey,
-            accountAddresses.slice(0, 18),
+        const witnessData = await generateDataCircom(
+            defaultUserPrivateKey,
+            ANVIL_ADDRESSES.slice(0, 10),
             DEFAULT_MSG_HASH,
             TREE_HIGHT,
         );

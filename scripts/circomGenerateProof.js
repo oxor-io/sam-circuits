@@ -1,8 +1,5 @@
 const { groth16 } = require("snarkjs");
 
-const { keccak256 } = require("@ethersproject/solidity");
-const { defaultAbiCoder } = require("@ethersproject/abi");
-
 const fs = require("fs");
 const path = require("path");
 
@@ -33,19 +30,6 @@ async function generateProofForContract(
     return JSON.parse("[" + calldataStr + "]");
 }
 
-function calculateMsgHash(to, value, data, operation, nonce, samAddress, chainId) {
-    const calldataHash = keccak256(["bytes"], [data]);
-
-    const encodedData = defaultAbiCoder.encode(
-        ["address", "uint256", "bytes32", "uint8", "uint256", "address", "uint256"],
-        [to, value, calldataHash, operation, nonce, samAddress, chainId],
-    );
-    const msgHash = keccak256(["bytes"], [encodedData]);
-
-    return msgHash;
-}
-
 module.exports = {
     generateProofForContract,
-    calculateMsgHash,
 };

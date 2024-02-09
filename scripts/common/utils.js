@@ -1,24 +1,14 @@
-const { isHexString, privateToPublic } = require("ethereumjs-util");
+const { isHexString, addHexPrefix } = require("ethereumjs-util");
 
 function validateMsgHash(msgHash) {
-    const isHex = isHexString(msgHash) || isHexString("0x" + msgHash);
+    const isHex = isHexString(msgHash) || isHexString(addHexPrefix(msgHash));
 
     if (!isHex && !(msgHash instanceof Uint8Array)) {
         throw new Error("MsgHash must be hex string or Uint8Array");
     }
 }
 
-async function createRandomAccount() {
-    const privKey = (await import("@noble/secp256k1")).utils.randomPrivateKey();
-    const pubKey = privateToPublic(Buffer.from(privKey));
-
-    return {
-        privKey,
-        pubKey,
-    };
-}
-
-function prepareToSerialization(witnessObj) {
+function prepareForSerialization(witnessObj) {
     for (const key in witnessObj) {
         // Currently all array variables are bigint
         if (Array.isArray(witnessObj[key])) {
@@ -35,7 +25,6 @@ function bigintArrayToStringArray(x) {
 
 module.exports = {
     validateMsgHash,
-    createRandomAccount,
-    prepareToSerialization,
+    prepareForSerialization,
     bigintArrayToStringArray,
 };

@@ -1,28 +1,40 @@
-const { isValidPrivate, isValidPublic, Address } = require("ethereumjs-util");
+const {
+    isValidPrivate,
+    isValidPublic,
+    toBuffer,
+    toChecksumAddress,
+    isValidChecksumAddress,
+    addHexPrefix,
+    privateToAddress,
+} = require("ethereumjs-util");
 const assert = require("assert");
 
-function validateKeyPair(privKey, pubKey) {
-    validatePrivKey(privKey);
-    validatePubKey(pubKey);
-}
-
 function validatePubKey(pubKey) {
-    if (!Buffer.isBuffer(pubKey)) pubKey = Buffer.from(pubKey);
+    if (!Buffer.isBuffer(pubKey)) pubKey = toBuffer(pubKey);
     assert(isValidPublic(pubKey), "Invalid public key");
 }
 
 function validatePrivKey(privKey) {
-    if (!Buffer.isBuffer(privKey)) privKey = Buffer.from(privKey);
+    if (!Buffer.isBuffer(privKey)) privKey = toBuffer(privKey);
     assert(isValidPrivate(privKey), "Invalid private key");
 }
 
-function pubKeyToAddressString(pubKey) {
-    return Address.fromPublicKey(pubKey).toString();
+function privKeyToStringAddress(privKey) {
+    assert(privKey instanceof Uint8Array, "Private key must be Uint8Array");
+    return addHexPrefix(privateToAddress(toBuffer(privKey)).toString("hex"));
+}
+
+function toChecksumAddressIfNot(address) {
+    if (!isValidChecksumAddress(address)) {
+        address = toChecksumAddress(address);
+    }
+
+    return address;
 }
 
 module.exports = {
-    pubKeyToAddressString,
-    validateKeyPair,
     validatePubKey,
     validatePrivKey,
+    toChecksumAddressIfNot,
+    privKeyToStringAddress,
 };

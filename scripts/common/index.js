@@ -6,14 +6,14 @@ const {
     Uint8ArrayToBigint,
     Uint8ArrayToBigintBitwise,
 } = require("./bnManipulations");
-const { validateKeyPair, validatePrivKey, validatePubKey, pubKeyToAddressString } = require("./account");
-const { validateMsgHash, createRandomAccount, prepareToSerialization, bigintArrayToStringArray } = require("./utils");
+const { validatePrivKey, validatePubKey, toChecksumAddressIfNot, privKeyToStringAddress } = require("./account");
+const { validateMsgHash, prepareForSerialization, bigintArrayToStringArray } = require("./utils");
 
 module.exports = {
-    validateKeyPair,
     validatePrivKey,
     validatePubKey,
-    pubKeyToAddressString,
+    toChecksumAddressIfNot,
+    privKeyToStringAddress,
 
     bigintToUint8Array,
     bigintToArray,
@@ -23,7 +23,6 @@ module.exports = {
     Uint8ArrayToBigintBitwise,
 
     validateMsgHash,
-    createRandomAccount,
-    prepareToSerialization,
+    prepareForSerialization,
     bigintArrayToStringArray,
 };
