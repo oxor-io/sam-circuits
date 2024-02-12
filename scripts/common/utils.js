@@ -8,23 +8,29 @@ function validateMsgHash(msgHash) {
     }
 }
 
-function prepareForSerialization(witnessObj) {
-    for (const key in witnessObj) {
-        // Currently all array variables are bigint
-        if (Array.isArray(witnessObj[key])) {
-            // Because some arrays are nested - we use recursion
-            witnessObj[key] = bigintArrayToStringArray(witnessObj[key]);
-        }
-    }
-}
+function prepareForSerialization(obj) {
+    const typeOfObj = typeof obj;
 
-function bigintArrayToStringArray(x) {
-    if (!Array.isArray(x)) return x.toString();
-    else return x.map(bigintArrayToStringArray);
+    if (typeOfObj === "bigint" || typeOfObj === "number") {
+        return obj.toString();
+    }
+
+    if (Array.isArray(obj)) {
+        return obj.map((element) => prepareForSerialization(element));
+    }
+
+    if (typeOfObj === "object" && obj !== null) {
+        const result = {};
+        for (const [key, value] of Object.entries(obj)) {
+            result[key] = prepareForSerialization(value);
+        }
+        return result;
+    }
+
+    return obj;
 }
 
 module.exports = {
     validateMsgHash,
     prepareForSerialization,
-    bigintArrayToStringArray,
 };

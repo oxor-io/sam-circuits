@@ -7,7 +7,7 @@ const {
     Uint8ArrayToBigintBitwise,
 } = require("./bnManipulations");
 const { validatePrivKey, validatePubKey, toChecksumAddressIfNot, privKeyToStringAddress } = require("./account");
-const { validateMsgHash, prepareForSerialization, bigintArrayToStringArray } = require("./utils");
+const { validateMsgHash, prepareForSerialization } = require("./utils");
 
 module.exports = {
     validatePrivKey,
@@ -24,5 +24,4 @@ module.exports = {
 
     validateMsgHash,
     prepareForSerialization,
-    bigintArrayToStringArray,
 };

@@ -34,16 +34,16 @@ async function generateDataNoir(privKey, participantAddresses, msgHash, treeHeig
     const currentAddress = privKeyToStringAddress(privKey);
     const { proof, tree } = await getInclusionProof(currentAddress, participantAddresses, treeHeight);
 
-    proof.pathIndices = compress_positions(proof.pathIndices);
+    proof.pathIndices = compressPositions(proof.pathIndices);
 
     const witness = {
         root: tree.root.toString(),
 
-        pathElements: proof.pathElements,
-        pathIndices: proof.pathIndices,
+        hash_path: proof.pathElements,
+        path_indexes: proof.pathIndices,
 
-        msgHash: msgHashU8,
-        pubKey,
+        msg_hash: msgHashU8,
+        pub_key: pubKey,
         sig: sigBytes,
     };
 
@@ -51,7 +51,7 @@ async function generateDataNoir(privKey, participantAddresses, msgHash, treeHeig
 }
 
 // If options.order == false => reverse position array
-function compress_positions(positions_indexes, options = { order: true }) {
+function compressPositions(positions_indexes, options = { order: true }) {
     if (!options.order) {
         positions_indexes = positions_indexes.reverse();
     }

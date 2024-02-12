@@ -1,8 +1,9 @@
 const { generateProofForContract } = require("./circomGenerateProof.js");
-const { calculateMsgHash, generateDataCircom } = require("./generateInput");
+const { calculateMsgHash, generateDataCircom, generateDataNoir } = require("./generateInput");
 const { bigintToUint8ArrayBitwise } = require("./common/bnManipulations");
 
 const { ANVIL_ADDRESSES, ANVIL_PRIVATE_KEYS } = require("./common/anvil_accounts_data.json");
+const { generateProverTOML } = require("./noirHelpers.js");
 
 const TO = "0x43B19cc4207cedCa14bF3F83e7a5f8F9EaeDaA8c";
 const VALUE = 0;
@@ -16,19 +17,24 @@ const TREE_HIGHT = 5;
 const BUILD_PATH = "../build/";
 const CIRCUIT_NAME = "SAM-ECDSA";
 
+const IS_FOR_CIRCOM = false;
+
 (async function () {
     const msgHash = calculateMsgHash(TO, VALUE, DATA, OPERATION, NONCE, SAM_ADDRESS, CHAIN_ID);
+    let data;
 
-    const data = await generateDataCircom(
-        bigintToUint8ArrayBitwise(BigInt(ANVIL_PRIVATE_KEYS[0])),
-        ANVIL_ADDRESSES,
-        msgHash,
-        TREE_HIGHT,
-    );
-    console.log(data);
+    const privKeyU8Arr = bigintToUint8ArrayBitwise(BigInt(ANVIL_PRIVATE_KEYS[0]));
 
-    const wasmPath = BUILD_PATH + CIRCUIT_NAME + "_js/" + CIRCUIT_NAME + ".wasm";
-    const zkeyPath = BUILD_PATH + CIRCUIT_NAME + ".zkey";
+    if (IS_FOR_CIRCOM) {
+        data = await generateDataCircom(privKeyU8Arr, ANVIL_ADDRESSES, msgHash, TREE_HIGHT);
+        console.log(data);
 
-    await generateProofForContract(data, wasmPath, zkeyPath, { outputType: "console" });
+        const wasmPath = BUILD_PATH + CIRCUIT_NAME + "_js/" + CIRCUIT_NAME + ".wasm";
+        const zkeyPath = BUILD_PATH + CIRCUIT_NAME + ".zkey";
+
+        await generateProofForContract(data, wasmPath, zkeyPath, { outputType: "console" });
+    } else {
+        data = await generateDataNoir(privKeyU8Arr, ANVIL_ADDRESSES, msgHash, TREE_HIGHT);
+        generateProverTOML(data);
+    }
 })();
