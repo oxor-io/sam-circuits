@@ -33,3 +33,9 @@ Execute the tests using:
 ```shell
 npm run test
 ```
+
+### Note
+
+The implementation in both Circom and Noir is identical, with the exception of how commitments are calculated.
+
+For Circom, the commitment is influenced by the number of registers (`k`). This is represented as `MiMCSponge([address, msgHash])`, where `msgHash` is of a length that matches the value of `k` specified in the parameters. On the other hand, in Noir, the commitment calculation is `mimc_sponge([address, msg_hash])`, with `msg_hash` consisting of 32 elements, each one byte in length.
