@@ -88,7 +88,6 @@ fn compute_commitment(addr: Field, msg_hash: [Field; WORD_LEN]) -> Field {
     let mut commitment_array = [0; WORD_LEN + 1];
 
     commitment_array[0] = addr;
-    // TODO test length and correct positioning
     for i in 1..(msg_hash.len() + 1) {
         commitment_array[i] = msg_hash[i - 1];
     }
@@ -124,7 +123,7 @@ fn main(
 }
 
 mod tests {
-    use crate::{U8Word,U8Array,PubKey,RawSignature,main};
+    use crate::{U8Word, U8Array, PubKey, RawSignature, main, compute_commitment};
 
     global default_msg_hash: U8Word = [
             2, 207, 71, 217, 145, 255, 62, 188,
@@ -326,5 +325,16 @@ mod tests {
             default_path_indecies,
             incorrect_path_elements
         );
+    }
+
+    #[test]
+    fn check_commitment() {
+        let address_from = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+        let correct_commitment = 0x1dfaa26abfd0ff9a17bb7c0bf15891ad06cad4991500b211a8edcc9a2a90fca6;
+
+        let msg_hash = default_msg_hash_u8_array.as_field_array();
+        let commitment = compute_commitment(address_from, msg_hash);
+
+        assert_eq(commitment, correct_commitment);
     }
 }
