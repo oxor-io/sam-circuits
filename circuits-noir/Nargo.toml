@@ -1,8 +1,0 @@
-[package]
-name = "SAM"
-type = "bin"
-authors = ["@KumaCrypto"]
-compiler_version = ">=0.23.0"
-
-[dependencies]
-mimc_sponge = {tag = "v0.0.1", git = "https://github.com/KumaCrypto/mimc_sponge_noir.git"}
