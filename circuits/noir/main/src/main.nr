@@ -5,7 +5,7 @@ mod merkle_tree;
 use dep::std::hash::keccak256;
 use pub_key::{PubKey, RawSignature};
 use u8_array::{U8Array, WORD_LEN};
-use merkle_tree::{compute_merkle_root, mimc_sponge};
+use merkle_tree::{compute_merkle_root, mimc_sponge, MIMC_SPONGE_KEY};
 
 global LEVELS: Field = 5; // Depth of the tree
 type TREE_HASH_PATH = [Field; LEVELS];
@@ -25,7 +25,7 @@ fn main(
     let addr = pub_key.get_address().as_field();
 
     // Get user leaf (hash of address)
-    let user_leaf: [Field; 1] = mimc_sponge([addr], 0);
+    let user_leaf: [Field; 1] = mimc_sponge([addr], MIMC_SPONGE_KEY);
     let user_leaf = user_leaf[0];
 
     // Verify that address in Merkle Trie
@@ -44,7 +44,7 @@ fn compute_commitment(addr: Field, msg_hash: [Field; WORD_LEN]) -> Field {
         commitment_array[i] = msg_hash[i - 1];
     }
 
-    let commitment: [Field; 1] = mimc_sponge(commitment_array, 0);
+    let commitment: [Field; 1] = mimc_sponge(commitment_array, MIMC_SPONGE_KEY);
     commitment[0]
 }
 

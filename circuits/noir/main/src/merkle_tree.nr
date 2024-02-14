@@ -1,5 +1,7 @@
 use dep::mimc_sponge::mimc_sponge;
 
+global MIMC_SPONGE_KEY = 0;
+
 pub fn compute_merkle_root<N>(leaf: Field, index: Field, hash_path: [Field; N]) -> Field {
     let n = hash_path.len();
     let index_bits = index.to_le_bits(n as u32);
@@ -12,7 +14,7 @@ pub fn compute_merkle_root<N>(leaf: Field, index: Field, hash_path: [Field; N]) 
             (current, hash_path[i])
         };
 
-        let digest: [Field; 1] = mimc_sponge([hash_left, hash_right], 0);
+        let digest: [Field; 1] = mimc_sponge([hash_left, hash_right], MIMC_SPONGE_KEY);
         current = digest[0];
     }
     current
