@@ -8,7 +8,7 @@ const {
 const { generateTree, getInclusionProof } = require("./merkleTree.js");
 const { signMessageChunks, signMessageU8 } = require("./signMessage.js");
 const { generateProofForContract } = require("./circomGenerateProof.js");
-const { generateProverTOML, getCircuit, getBackend, getNoirComponents } = require("./noirHelpers.js");
+const { writeProverTOML, getCircuit, getBackend, getNoirComponents } = require("./noirHelpers.js");
 
 module.exports = {
     generateTree,
@@ -23,7 +23,7 @@ module.exports = {
 
     common,
 
-    generateProverTOML,
+    writeProverTOML,
     getCircuit,
     getBackend,
     getNoirComponents,
