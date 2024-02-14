@@ -37,11 +37,11 @@ fn main(
 }
 
 fn compute_commitment(addr: Field, msg_hash: [Field; WORD_LEN]) -> Field {
-    let mut commitment_array = [0; WORD_LEN + 1];
+    let commitment_slice = msg_hash.as_slice().push_front(addr);
 
-    commitment_array[0] = addr;
-    for i in 1..(msg_hash.len() + 1) {
-        commitment_array[i] = msg_hash[i - 1];
+    let mut commitment_array = [0; WORD_LEN + 1];
+    for i in 0..commitment_array.len() {
+        commitment_array[i] = commitment_slice[i];
     }
 
     let commitment: [Field; 1] = mimc_sponge(commitment_array, MIMC_SPONGE_KEY);
