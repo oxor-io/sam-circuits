@@ -42,7 +42,7 @@ async function generateDataNoir(privKey, participantAddresses, msgHash, treeHeig
         hash_path: proof.pathElements,
         path_indexes: proof.pathIndices,
 
-        msg_hash: msgHashU8,
+        msg_hash: { arr: msgHashU8 },
         pub_key: pubKey,
         sig: sigBytes,
     };
