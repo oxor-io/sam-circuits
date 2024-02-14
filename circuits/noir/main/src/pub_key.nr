@@ -84,12 +84,12 @@ mod tests {
         ];
 
     #[test]
-fn test_verify_signature_vlaid() {
+    fn test_verify_signature_vlaid() {
         assert(default_pub_key.is_sig_valid_for_msg(default_sig, default_msg_hash));
     }
 
     #[test(should_fail)]
-fn test_verify_signature_invalid_sig() {
+    fn test_verify_signature_invalid_sig() {
         let invalid_sig = [
             20, 253, 131, 117, 218, 12, 92, 139, 45, 202, 191,
             23, 123, 110, 15, 26, 199, 178, 234, 37, 148, 148,
@@ -103,7 +103,7 @@ fn test_verify_signature_invalid_sig() {
     }
 
     #[test(should_fail)]
-fn test_verify_signature_invalid_hash() {
+    fn test_verify_signature_invalid_hash() {
         let msg_hash: U8Word = [
             1, 207, 71, 217, 145, 255, 62, 188,
             249, 9, 45, 82, 88, 164, 226, 63,
@@ -115,7 +115,7 @@ fn test_verify_signature_invalid_hash() {
     }
 
     #[test(should_fail)]
-fn test_verify_signature_invalid_pk() {
+    fn test_verify_signature_invalid_pk() {
         let pub_key = PubKey {
             x: [
                 130, 24, 83, 91, 84, 16, 93, 74,
