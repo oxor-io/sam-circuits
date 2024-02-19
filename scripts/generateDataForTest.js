@@ -3,7 +3,8 @@ const { calculateMsgHash, generateDataCircom, generateDataNoir } = require("./ge
 const { bigintToUint8ArrayBitwise } = require("./common/bnManipulations");
 
 const { ANVIL_ADDRESSES, ANVIL_PRIVATE_KEYS } = require("./common/anvil_accounts_data.json");
-const { generateProverTOML } = require("./noirHelpers.js");
+const { writeProverTOML } = require("./noirHelpers.js");
+const { resolve } = require("path");
 
 const TO = "0x43B19cc4207cedCa14bF3F83e7a5f8F9EaeDaA8c";
 const VALUE = 0;
@@ -35,6 +36,7 @@ const IS_FOR_CIRCOM = false;
         await generateProofForContract(data, wasmPath, zkeyPath, { outputType: "console" });
     } else {
         data = await generateDataNoir(privKeyU8Arr, ANVIL_ADDRESSES, msgHash, TREE_HIGHT);
-        generateProverTOML(data);
+        const pathToWrite = resolve("./circuits/noir/main/Prover.toml");
+        writeProverTOML(data, pathToWrite);
     }
 })();

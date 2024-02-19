@@ -34,6 +34,9 @@
     "fixed-merkle-tree": "^0.7.3"
   },
   "devDependencies": {
+    "@noir-lang/backend_barretenberg": "^0.23.0",
+    "@noir-lang/noir_js": "^0.23.0",
+    "@noir-lang/noir_wasm": "^0.23.0",
     "chai": "^4.3.10",
     "chai-as-promised": "^7.1.1",
     "circom_tester": "^0.0.20",

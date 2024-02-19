@@ -2,3 +2,5 @@ Prover.toml
 Verifier.toml
 proofs
 target
+archives
+libs

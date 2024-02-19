@@ -9,6 +9,8 @@ function validateMsgHash(msgHash) {
 }
 
 function prepareForSerialization(obj) {
+    if (obj instanceof Uint8Array) obj = Array.from(obj);
+
     const typeOfObj = typeof obj;
 
     if (typeOfObj === "bigint" || typeOfObj === "number") {
